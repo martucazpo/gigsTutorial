@@ -25,31 +25,61 @@ router.get('/', (req, res) => Gig.findAll()
 router.get('/add', (req, res) => res.render('add'));
 
 router.post('/add', (req, res) => {
-    const data = {
-        title: 'simple Wordpress website',
-        technologies: 'wordpress,php,html,css',
-        budget: '$1000',
-        description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Et malesuada fames ac turpis egestas maecenas. Ac turpis egestas sed tempus urna et pharetra. Est ullamcorper eget nulla facilisi etiam dignissim diam quis enim. Urna nec tincidunt praesent semper feugiat nibh.',
-        contact_email: 'user2@gmail.com'
-    }
-
     let {
         title,
         technologies,
         budget,
         description,
         contact_email
-    } = data;
+    } = req.body;
+    let errors = [];
+    if (!title) {
+        errors.push({
+            text: 'Please add a title'
+        });
+    }
+    if (!technologies) {
+        errors.push({
+            text: 'Please list required technologies'
+        });
+    }
+    if (!description) {
+        errors.push({
+            text: 'In a few word, please describe the job'
+        });
+    }
+    if (!contact_email) {
+        errors.push({
+            text: 'Please add a contact email'
+        });
+    }
 
-    Gig.create({
+    if (errors.length > 0) {
+        res.render('add', {
+            errors,
             title,
-            technologies,
-            budget,
             description,
+            budget,
+            technologies,
             contact_email
-        })
-        .then(gig => res.redirect('/gigs'))
-        .catch(err => console.log(err));
+        });
+    } else {
+        if(!budget) {
+            budget = 'Unknown';
+        } else {
+            budget = `$${budget}`;
+        }
+        technologies = technologies.toLowerCase().replace(/, /g, ',');
+        Gig.create({
+                title,
+                technologies,
+                budget,
+                description,
+                contact_email
+            })
+            .then(gig => res.redirect('/gigs'))
+            .catch(err => console.log(err));
+    }
 });
 
 module.exports = router;
